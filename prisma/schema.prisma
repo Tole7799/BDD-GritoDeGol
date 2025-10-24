@@ -1,16 +1,145 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
+// ---------- Prisma schema (MySQL) ----------
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-model user {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique(map: "User_email_key")
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ========== PAIS ==========
+model Pais {
+  id_pais Int     @id @default(autoincrement())
+  nombre  String  @db.VarChar(50)
+
+  // relaciones
+  Liga Liga[]
+}
+
+// ========== LIGA ==========
+model Liga {
+  id_liga  Int     @id @default(autoincrement())
+  id_pais  Int
+  nombre   String  @db.VarChar(100)
+
+  // relaciones
+  pais        Pais       @relation(fields: [id_pais], references: [id_pais])
+  equipos     Equipo[]
+  temporadas  Temporada[]
+}
+
+// ========== EQUIPO ==========
+model Equipo {
+  id_equipo Int     @id @default(autoincrement())
+  id_liga   Int
+  nombre    String  @db.VarChar(100)
+  ciudad    String  @db.VarChar(100)
+
+  // relaciones
+  liga            Liga            @relation(fields: [id_liga], references: [id_liga])
+  partidosLocal   Partido[]       @relation("Partido_local")
+  partidosVisit   Partido[]       @relation("Partido_visitante")
+  partidoEquipo   Partido_Equipo[]
+  plantel         Plantel[]
+}
+
+// ========== TEMPORADA ==========
+model Temporada {
+  id_temporada Int      @id @default(autoincrement())
+  id_liga      Int
+  nombre       String   @db.VarChar(50)
+  fecha_inicio DateTime @db.Date
+  fecha_fin    DateTime @db.Date
+
+  // relaciones
+  liga   Liga    @relation(fields: [id_liga], references: [id_liga])
+  fechas Fecha[]
+  plantel Plantel[]
+}
+
+// ========== FECHA (jornada) ==========
+model Fecha {
+  id_fecha      Int @id @default(autoincrement())
+  id_temporada  Int
+  numero_fecha  Int
+
+  // relaciones
+  temporada Temporada @relation(fields: [id_temporada], references: [id_temporada])
+  partidos  Partido[]
+}
+
+// ========== PARTIDO ==========
+model Partido {
+  id_partido     Int     @id @default(autoincrement())
+  id_fecha       Int
+  id_local       Int
+  id_visitante   Int
+  goles_local    Int
+  goles_visitante Int
+  estadio        String  @db.VarChar(120)
+
+  // relaciones
+  fecha      Fecha  @relation(fields: [id_fecha], references: [id_fecha])
+  local      Equipo @relation("Partido_local",     fields: [id_local],     references: [id_equipo])
+  visitante  Equipo @relation("Partido_visitante", fields: [id_visitante], references: [id_equipo])
+
+  partidoEquipo Partido_Equipo[]
+}
+
+// ========== PARTIDO_EQUIPO (stats por equipo en un partido) ==========
+model Partido_Equipo {
+  id_partido   Int
+  id_equipo    Int
+  es_local     Boolean
+  posesion     Decimal @db.Decimal(5, 2)
+  tiros        Int
+  tiros_arco   Int
+  amarillas    Int
+  rojas        Int
+
+  // PK compuesta
+  @@id([id_partido, id_equipo])
+
+  // relaciones
+  partido Partido @relation(fields: [id_partido], references: [id_partido])
+  equipo  Equipo  @relation(fields: [id_equipo],  references: [id_equipo])
+}
+
+// ========== JUGADOR ==========
+model Jugador {
+  id_jugador Int     @id @default(autoincrement())
+  nombre     String  @db.VarChar(100)
+  apellido   String  @db.VarChar(100)
+  posicion   String  @db.VarChar(30)
+  fecha_nac  DateTime @db.Date
+  dorsal     Int
+
+  // relaciones
+  plantel Plantel[]
+}
+
+// ========== PLANTEL (jugador en un equipo y temporada) ==========
+model Plantel {
+  id_equipo    Int
+  id_jugador   Int
+  id_temporada Int
+  fecha_alta   DateTime @db.Date
+  fecha_baja   DateTime? @db.Date
+
+  // PK compuesta
+  @@id([id_equipo, id_jugador, id_temporada])
+
+  // relaciones
+  equipo     Equipo     @relation(fields: [id_equipo],    references: [id_equipo])
+  jugador    Jugador    @relation(fields: [id_jugador],   references: [id_jugador])
+  temporada  Temporada  @relation(fields: [id_temporada], references: [id_temporada])
+}
+
+// ========== USUARIO (login) ==========
+model Usuario {
+  id_usuario    Int    @id @default(autoincrement())
+  email         String @db.VarChar(150)
+  password_hash String @db.VarChar(255)
+  rol           String
 }
