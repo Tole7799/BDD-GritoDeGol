@@ -46,21 +46,11 @@ export default function LoginPage() {
   return (
     <main className="min-h-dvh grid place-items-center px-4">
       <section className="w-full max-w-[420px] rounded-2xl bg-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] p-6 md:p-8">
-        {/* Logo */}
         <div className="mx-auto mb-6 flex items-center justify-center">
-          <Image
-            src="/logo.png"
-            alt="Logo Liga de Deportes"
-            width={80}
-            height={80}
-            className="rounded-full"
-            priority
-          />
+          <Image src="/logo.png" alt="Logo Liga de Deportes" width={80} height={80} priority />
         </div>
 
-        <h1 className="text-center text-2xl font-semibold text-gray-900">
-          Iniciar sesión
-        </h1>
+        <h1 className="text-center text-2xl font-semibold text-gray-900">Iniciar sesión</h1>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
@@ -68,9 +58,12 @@ export default function LoginPage() {
               Email
             </label>
             <input
-              id="email" name="email" type="email" autoComplete="email" required
+              id="email"
+              name="email"
+              type="email"
+              required
               placeholder="tucorreo@gmail.com"
-              className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-gray-900 outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/20"
+              className="w-full rounded-xl border border-gray-300 px-3 py-2.5 outline-none focus:ring-emerald-300"
             />
           </div>
 
@@ -79,22 +72,21 @@ export default function LoginPage() {
               Contraseña
             </label>
             <input
-              id="password" name="password" type="password" autoComplete="current-password" required
+              id="password"
+              name="password"
+              type="password"
+              required
               placeholder="●●●●●●●●"
-              className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-gray-900 outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/20"
+              className="w-full rounded-xl border border-gray-300 px-3 py-2.5 outline-none focus:ring-emerald-300"
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-red-600" role="alert">
-              {error}
-            </p>
-          )}
+          {error && <p className="text-sm text-red-600">{error}</p>}
 
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex w-full items-center justify-center rounded-xl bg-brand px-4 py-2.5 text-white font-medium transition hover:bg-brand-dark focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/30 disabled:opacity-60 disabled:cursor-not-allowed shadow"
+            className="w-full rounded-xl bg-emerald-700 py-2.5 text-white font-medium hover:bg-emerald-800 transition"
           >
             {submitting ? "Ingresando..." : "Iniciar sesión"}
           </button>
