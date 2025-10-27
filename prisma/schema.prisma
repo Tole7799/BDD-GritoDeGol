@@ -1,35 +1,65 @@
-// ---------- Prisma schema (MySQL) ----------
+// ---------- Generador y datasource ----------
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
+// ---------- Tablas principales del DER ----------
 
-// ========== PAIS ==========
 model Pais {
   id_pais Int     @id @default(autoincrement())
   nombre  String  @db.VarChar(50)
 
   // relaciones
-  Liga Liga[]
+  ligas Liga[]
+
+  @@map("Pais")
 }
 
-// ========== LIGA ==========
 model Liga {
-  id_liga  Int     @id @default(autoincrement())
-  id_pais  Int
-  nombre   String  @db.VarChar(100)
+  id_liga Int     @id @default(autoincrement())
+  id_pais Int
+  nombre  String  @db.VarChar(100)
 
   // relaciones
-  pais        Pais       @relation(fields: [id_pais], references: [id_pais])
-  equipos     Equipo[]
+  pais        Pais       @relation(fields: [id_pais], references: [id_pais], onDelete: Restrict, onUpdate: Cascade)
   temporadas  Temporada[]
+  equipos     Equipo[]
+
+  @@map("Liga")
 }
 
-// ========== EQUIPO ==========
+model Temporada {
+  id_temporada Int     @id @default(autoincrement())
+  id_liga      Int
+  nombre       String  @db.VarChar(50)
+  fecha_inicio DateTime @db.Date
+  fecha_fin    DateTime @db.Date
+
+  // relaciones
+  liga    Liga   @relation(fields: [id_liga], references: [id_liga], onDelete: Restrict, onUpdate: Cascade)
+  fechas  Fecha[]
+  plantel Plantel[]
+
+  @@map("Temporada")
+}
+
+model Fecha {
+  id_fecha      Int @id @default(autoincrement())
+  id_temporada  Int
+  numero_fecha  Int
+
+  // relaciones
+  temporada Temporada @relation(fields: [id_temporada], references: [id_temporada], onDelete: Restrict, onUpdate: Cascade)
+  partidos  Partido[]
+
+  @@map("Fecha")
+}
+
 model Equipo {
   id_equipo Int     @id @default(autoincrement())
   id_liga   Int
@@ -37,76 +67,15 @@ model Equipo {
   ciudad    String  @db.VarChar(100)
 
   // relaciones
-  liga            Liga            @relation(fields: [id_liga], references: [id_liga])
-  partidosLocal   Partido[]       @relation("Partido_local")
-  partidosVisit   Partido[]       @relation("Partido_visitante")
-  partidoEquipo   Partido_Equipo[]
-  plantel         Plantel[]
+  liga           Liga           @relation(fields: [id_liga], references: [id_liga], onDelete: Restrict, onUpdate: Cascade)
+  partidosLocal  Partido[]      @relation("PartidosLocal")
+  partidosVisit  Partido[]      @relation("PartidosVisit")
+  partidoEquipo  PartidoEquipo[]
+  plantel        Plantel[]
+
+  @@map("Equipo")
 }
 
-// ========== TEMPORADA ==========
-model Temporada {
-  id_temporada Int      @id @default(autoincrement())
-  id_liga      Int
-  nombre       String   @db.VarChar(50)
-  fecha_inicio DateTime @db.Date
-  fecha_fin    DateTime @db.Date
-
-  // relaciones
-  liga   Liga    @relation(fields: [id_liga], references: [id_liga])
-  fechas Fecha[]
-  plantel Plantel[]
-}
-
-// ========== FECHA (jornada) ==========
-model Fecha {
-  id_fecha      Int @id @default(autoincrement())
-  id_temporada  Int
-  numero_fecha  Int
-
-  // relaciones
-  temporada Temporada @relation(fields: [id_temporada], references: [id_temporada])
-  partidos  Partido[]
-}
-
-// ========== PARTIDO ==========
-model Partido {
-  id_partido     Int     @id @default(autoincrement())
-  id_fecha       Int
-  id_local       Int
-  id_visitante   Int
-  goles_local    Int
-  goles_visitante Int
-  estadio        String  @db.VarChar(120)
-
-  // relaciones
-  fecha      Fecha  @relation(fields: [id_fecha], references: [id_fecha])
-  local      Equipo @relation("Partido_local",     fields: [id_local],     references: [id_equipo])
-  visitante  Equipo @relation("Partido_visitante", fields: [id_visitante], references: [id_equipo])
-
-  partidoEquipo Partido_Equipo[]
-}
-
-// ========== PARTIDO_EQUIPO (stats por equipo en un partido) ==========
-model Partido_Equipo {
-  id_partido   Int
-  id_equipo    Int
-  es_local     Boolean
-  posesion     Decimal @db.Decimal(5, 2)
-  tiros        Int
-  tiros_arco   Int
-  amarillas    Int
-  rojas        Int
-
-  // PK compuesta
-  @@id([id_partido, id_equipo])
-
-  // relaciones
-  partido Partido @relation(fields: [id_partido], references: [id_partido])
-  equipo  Equipo  @relation(fields: [id_equipo],  references: [id_equipo])
-}
-
-// ========== JUGADOR ==========
 model Jugador {
   id_jugador Int     @id @default(autoincrement())
   nombre     String  @db.VarChar(100)
@@ -117,29 +86,74 @@ model Jugador {
 
   // relaciones
   plantel Plantel[]
+
+  @@map("Jugador")
 }
 
-// ========== PLANTEL (jugador en un equipo y temporada) ==========
+model Partido {
+  id_partido      Int     @id @default(autoincrement())
+  id_fecha        Int
+  id_local        Int
+  id_visitante    Int
+  goles_local     Int
+  goles_visitante Int
+  estadio         String  @db.VarChar(120)
+
+  // relaciones
+  fecha      Fecha  @relation(fields: [id_fecha], references: [id_fecha], onDelete: Restrict, onUpdate: Cascade)
+  local      Equipo @relation("PartidosLocal",  fields: [id_local],     references: [id_equipo], onDelete: Restrict, onUpdate: Cascade)
+  visitante  Equipo @relation("PartidosVisit",  fields: [id_visitante], references: [id_equipo], onDelete: Restrict, onUpdate: Cascade)
+  equipos    PartidoEquipo[]
+
+  @@map("Partido")
+}
+
+model PartidoEquipo {
+  id_partido Int
+  id_equipo  Int
+
+  es_local  Boolean
+  posesion  Decimal? @db.Decimal(5, 2)
+  tiros     Int?
+  tiros_arco Int?    @map("tiros_arco")
+  amarillas Int?
+  rojas     Int?
+
+  // relaciones
+  partido Partido @relation(fields: [id_partido], references: [id_partido], onDelete: Cascade, onUpdate: Cascade)
+  equipo  Equipo  @relation(fields: [id_equipo],  references: [id_equipo],  onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([id_partido, id_equipo])
+  @@map("Partido_Equipo")
+}
+
 model Plantel {
   id_equipo    Int
   id_jugador   Int
   id_temporada Int
-  fecha_alta   DateTime @db.Date
-  fecha_baja   DateTime? @db.Date
 
-  // PK compuesta
-  @@id([id_equipo, id_jugador, id_temporada])
+  fecha_alta DateTime? @db.Date
+  fecha_baja DateTime? @db.Date
 
   // relaciones
-  equipo     Equipo     @relation(fields: [id_equipo],    references: [id_equipo])
-  jugador    Jugador    @relation(fields: [id_jugador],   references: [id_jugador])
-  temporada  Temporada  @relation(fields: [id_temporada], references: [id_temporada])
+  equipo    Equipo    @relation(fields: [id_equipo],    references: [id_equipo],    onDelete: Cascade, onUpdate: Cascade)
+  jugador   Jugador   @relation(fields: [id_jugador],   references: [id_jugador],   onDelete: Cascade, onUpdate: Cascade)
+  temporada Temporada @relation(fields: [id_temporada], references: [id_temporada], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([id_equipo, id_jugador, id_temporada])
+  @@map("Plantel")
 }
 
-// ========== USUARIO (login) ==========
-model Usuario {
-  id_usuario    Int    @id @default(autoincrement())
-  email         String @db.VarChar(150)
-  password_hash String @db.VarChar(255)
-  rol           String
+// ---------- Usuarios (manteniendo prisma.user en el código) ----------
+// Tu app usa prisma.user, así que mantenemos el modelo "User" pero lo
+// mapeamos a la tabla "Usuario" y a los nombres de columnas del DER.
+model User {
+  id       Int    @id @default(autoincrement()) @map("id_usuario")
+  email    String @unique @db.VarChar(150) 
+  password String @map("password_hash") @db.VarChar(255)
+  role     String @map("rol")
+  name     String?
+  @@map("Usuario")
 }
+
+
