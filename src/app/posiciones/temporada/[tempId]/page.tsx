@@ -20,7 +20,6 @@ export default async function Page({ params }: Params) {
   });
   if (!temporada) return notFound();
 
-  // --- SELECT (puede devolver Prisma.Decimal en agregados) ---
   const rowsRaw = await prisma.$queryRaw<Stand[]>`
     SELECT
       e.id_equipo, e.nombre AS equipo,
@@ -48,7 +47,6 @@ export default async function Page({ params }: Params) {
     ORDER BY pts DESC, (gf-gc) DESC, e.nombre ASC;
   `;
 
-  // --- Normalización: convertir Decimal/BigInt -> number ---
   const rows = rowsRaw.map((r: any) => ({
     ...r,
     pj:  Number(r.pj),
@@ -60,7 +58,6 @@ export default async function Page({ params }: Params) {
     pts: Number(r.pts),
   })) as Stand[];
 
-  // --- Últimos 5 resultados por equipo (V/E/D) ---
   const partidos = await prisma.partido.findMany({
     where: { fecha: { id_temporada: tempId } },
     include: { fecha: true },
@@ -118,32 +115,37 @@ export default async function Page({ params }: Params) {
       <div className="overflow-x-auto rounded-xl bg-white shadow">
         <table className="min-w-full text-sm">
           <thead className="bg-emerald-50 text-emerald-900">
-            <tr>
-              <th className="px-3 py-2 text-left">#</th>
-              <th className="px-3 py-2 text-left">Equipo</th>
-              <th className="px-3 py-2">PJ</th><th className="px-3 py-2">PG</th>
-              <th className="px-3 py-2">PE</th><th className="px-3 py-2">PP</th>
-              <th className="px-3 py-2">GF</th><th className="px-3 py-2">GC</th>
-              <th className="px-3 py-2">Pts</th>
-              <th className="px-3 py-2">Últimas</th> {/* reemplaza Semáforo */}
-            </tr>
-          </thead>
+  <tr>
+        <th className="px-3 py-2 text-left">#</th>
+        <th className="px-3 py-2 text-left">Equipo</th>
+        <th className="px-3 py-2">PJ</th>
+        <th className="px-3 py-2">PG</th>
+        <th className="px-3 py-2">PE</th>
+        <th className="px-3 py-2">PP</th>
+        <th className="px-3 py-2">GF</th>
+        <th className="px-3 py-2">GC</th>
+        <th className="px-3 py-2">Pts</th>
+        <th className="px-3 py-2">Últimas</th>
+      </tr>
+    </thead>
+
           <tbody>
             {rows.map((r, i) => (
               <tr key={r.id_equipo} className="border-t">
-                <td className="px-3 py-2">{i + 1}</td>
-                <td className="px-3 py-2">{r.equipo}</td>
-                <td className="px-3 py-2 text-center">{r.pj}</td>
-                <td className="px-3 py-2 text-center">{r.pg}</td>
-                <td className="px-3 py-2 text-center">{r.pe}</td>
-                <td className="px-3 py-2 text-center">{r.pp}</td>
-                <td className="px-3 py-2 text-center">{r.gf}</td>
-                <td className="px-3 py-2 text-center">{r.gc}</td>
-                <td className="px-3 py-2 text-center font-semibold">{r.pts}</td>
-                <td className="px-3 py-2">
-                  <FormBadges seq={formMap.get(r.id_equipo) ?? []} />
-                </td>
-              </tr>
+              <td className="px-3 py-2">{i + 1}</td>
+              <td className="px-3 py-2">{r.equipo}</td>
+              <td className="px-3 py-2 text-center">{r.pj}</td>
+              <td className="px-3 py-2 text-center">{r.pg}</td>
+              <td className="px-3 py-2 text-center">{r.pe}</td>
+              <td className="px-3 py-2 text-center">{r.pp}</td>
+              <td className="px-3 py-2 text-center">{r.gf}</td>
+              <td className="px-3 py-2 text-center">{r.gc}</td>
+              <td className="px-3 py-2 text-center font-semibold">{r.pts}</td>
+              <td className="px-3 py-2">
+                <FormBadges seq={formMap.get(r.id_equipo) ?? []} />
+              </td>
+            </tr>
+
             ))}
             {rows.length === 0 && (
               <tr><td colSpan={10} className="px-3 py-6 text-center text-zinc-500">Aún no hay partidos en esta temporada.</td></tr>
