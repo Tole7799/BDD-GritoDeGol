@@ -2,19 +2,13 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-function semaforo(pj: number, pts: number) {
-  const r = pj ? pts / pj : 0;
-  if (r >= 2) return "bg-green-500";
-  if (r >= 1) return "bg-yellow-500";
-  return "bg-red-500";
-}
-
 type Stand = {
   id_equipo: number; equipo: string;
   pj: number; pg: number; pe: number; pp: number;
   gf: number; gc: number; pts: number;
 };
 
+type Resultado = "V" | "E" | "D";
 type Params = { params: { tempId: string } };
 
 export default async function Page({ params }: Params) {
@@ -66,6 +60,48 @@ export default async function Page({ params }: Params) {
     pts: Number(r.pts),
   })) as Stand[];
 
+  // --- Últimos 5 resultados por equipo (V/E/D) ---
+  const partidos = await prisma.partido.findMany({
+    where: { fecha: { id_temporada: tempId } },
+    include: { fecha: true },
+    orderBy: [{ fecha: { numero_fecha: "desc" } }, { id_partido: "desc" }],
+  });
+
+  const formMap = new Map<number, Resultado[]>();
+  for (const p of partidos) {
+    // local
+    {
+      const r: Resultado = p.goles_local > p.goles_visitante ? "V" : p.goles_local < p.goles_visitante ? "D" : "E";
+      const arr = formMap.get(p.id_local) ?? [];
+      if (arr.length < 5) arr.push(r);
+      formMap.set(p.id_local, arr);
+    }
+    // visitante
+    {
+      const r: Resultado = p.goles_visitante > p.goles_local ? "V" : p.goles_visitante < p.goles_local ? "D" : "E";
+      const arr = formMap.get(p.id_visitante) ?? [];
+      if (arr.length < 5) arr.push(r);
+      formMap.set(p.id_visitante, arr);
+    }
+  }
+
+  function FormBadges({ seq }: { seq: Resultado[] }) {
+    const bg = (r: Resultado) => (r === "V" ? "bg-green-500" : r === "E" ? "bg-yellow-400" : "bg-red-500");
+    return (
+      <div className="flex gap-1">
+        {seq.map((r, i) => (
+          <span
+            key={i}
+            className={`${bg(r)} text-emerald-950/90 px-1.5 py-0.5 rounded text-xs font-bold`}
+            title={r === "V" ? "Victoria" : r === "E" ? "Empate" : "Derrota"}
+          >
+            {r}
+          </span>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-dvh bg-zinc-100 p-6 mx-auto max-w-5xl">
       <div className="mb-4 text-sm text-zinc-600">
@@ -88,7 +124,8 @@ export default async function Page({ params }: Params) {
               <th className="px-3 py-2">PJ</th><th className="px-3 py-2">PG</th>
               <th className="px-3 py-2">PE</th><th className="px-3 py-2">PP</th>
               <th className="px-3 py-2">GF</th><th className="px-3 py-2">GC</th>
-              <th className="px-3 py-2">Pts</th><th className="px-3 py-2">Semáforo</th>
+              <th className="px-3 py-2">Pts</th>
+              <th className="px-3 py-2">Últimas</th> {/* reemplaza Semáforo */}
             </tr>
           </thead>
           <tbody>
@@ -104,7 +141,7 @@ export default async function Page({ params }: Params) {
                 <td className="px-3 py-2 text-center">{r.gc}</td>
                 <td className="px-3 py-2 text-center font-semibold">{r.pts}</td>
                 <td className="px-3 py-2">
-                  <span className={`inline-block h-3 w-3 rounded-full ${semaforo(r.pj, r.pts)}`} />
+                  <FormBadges seq={formMap.get(r.id_equipo) ?? []} />
                 </td>
               </tr>
             ))}
