@@ -1,15 +1,17 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import LayoutClient from "./LayoutClient";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Grito de Gol",
-  description: "Pantalla de inicio de sesión del dashboard",
+  description: "Sistema de gestión de ligas de fútbol",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body className="bg-zinc-100">
+        <LayoutClient>{children}</LayoutClient>
+      </body>
     </html>
   );
 }

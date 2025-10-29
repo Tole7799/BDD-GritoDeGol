@@ -13,20 +13,7 @@ export default async function PagPrincipal() {
 
   return (
     <main className="min-h-dvh bg-zinc-100">
-      <header className="w-full bg-emerald-200">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="Grito de Gol" width={40} height={40} />
-            <span className="font-extrabold text-emerald-900">
-              GRITO <span className="text-emerald-700">de</span> GOL
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-emerald-950 sm:block">{email}</span>
-            <Link href="/api/logout" className="rounded-xl bg-emerald-900 px-4 py-2 text-white">Cerrar sesión</Link>
-          </div>
-        </div>
-      </header>
+
 
       <section className="mx-auto max-w-6xl p-6">
         <h1 className="mb-6 text-3xl font-bold text-emerald-900">Menú principal</h1>
