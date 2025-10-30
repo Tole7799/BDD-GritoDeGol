@@ -1,4 +1,3 @@
-// src/app/components/Navbar.tsx
 "use client";
 
 import Link from "next/link";
@@ -10,7 +9,7 @@ export default function Navbar() {
   const router = useRouter();
   const [email, setEmail] = useState<string | null>(null);
 
-  // Lee el email desde la cookie que setea /api/login
+
   useEffect(() => {
     const m = document.cookie.match(/(?:^|;\s*)userEmail=([^;]+)/);
     setEmail(m ? decodeURIComponent(m[1]) : null);
@@ -18,7 +17,6 @@ export default function Navbar() {
 
   async function handleLogout() {
     await fetch("/api/logout", { method: "POST" });
-    // limpia también el localStorage si lo usaste
     localStorage.removeItem("userEmail");
     router.push("/");
   }
