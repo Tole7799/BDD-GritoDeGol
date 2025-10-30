@@ -69,7 +69,7 @@ export default async function Page({ params }: Params) {
         {equipo.liga.pais.nombre} · {equipo.liga.nombre} · Temporada {temporada.nombre}
       </p>
 
-      <div className="overflow-x-auto rounded-xl bg-white shadow">
+            <div className="overflow-x-auto rounded-xl bg-white shadow">
         <table className="min-w-full text-sm">
           <thead className="bg-emerald-50 text-emerald-900">
             <tr>
@@ -78,8 +78,6 @@ export default async function Page({ params }: Params) {
               <th className="px-3 py-2">Dorsal</th>
               <th className="px-3 py-2">Edad</th>
               <th className="px-3 py-2">Nacimiento</th>
-              <th className="px-3 py-2">Alta</th>
-              <th className="px-3 py-2">Baja</th>
             </tr>
           </thead>
           <tbody>
@@ -94,22 +92,19 @@ export default async function Page({ params }: Params) {
                   <td className="px-3 py-2 text-center">
                     {p.jugador.fecha_nac ? new Date(p.jugador.fecha_nac).toLocaleDateString() : "-"}
                   </td>
-                  <td className="px-3 py-2 text-center">
-                    {p.fecha_alta ? new Date(p.fecha_alta).toLocaleDateString() : "-"}
-                  </td>
-                  <td className="px-3 py-2 text-center">
-                    {p.fecha_baja ? new Date(p.fecha_baja).toLocaleDateString() : "-"}
-                  </td>
                 </tr>
               ))}
             {plantel.length === 0 && (
-              <tr><td colSpan={7} className="px-3 py-6 text-center text-zinc-500">
-                No hay jugadores cargados para esta temporada.
-              </td></tr>
+              <tr>
+                <td colSpan={5} className="px-3 py-6 text-center text-zinc-500">
+                  No hay jugadores cargados para esta temporada.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
       </div>
+
     </main>
   );
 }
